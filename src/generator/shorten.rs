@@ -1,13 +1,16 @@
-use super::{
-    database::NamesRepository,
-    name_generator::{GeneratedName, NameGeneratorTrait},
-};
+use super::name_generator::{GeneratedName, NameGeneratorTrait};
 use url::Url;
+
+pub trait NamesRepository {
+    fn store_name(&self, original: &Url, generated: &GeneratedName) -> Result<(), String>;
+    fn name_exists(&self, name: &GeneratedName) -> Result<bool, String>;
+    fn retrieve_original_name(&self, name: &GeneratedName) -> Result<String, String>;
+}
 
 pub trait Shortener {
     fn shorten_name(
         &self,
-        name: &str,
+        name: &Url,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Result<GeneratedName, String>;
 }
@@ -48,10 +51,9 @@ where
 {
     fn shorten_name(
         &self,
-        input: &str,
+        input: &Url,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Result<GeneratedName, String> {
-        let valid_url = self.validate_input(input)?;
         let mut generated_name = self.generator.make_random_name(rng);
         let mut already_exists = self.names_repo.name_exists(&generated_name)?;
         loop {
@@ -61,7 +63,7 @@ where
             generated_name = self.generator.make_random_name(rng);
             already_exists = self.names_repo.name_exists(&generated_name)?;
         }
-        self.names_repo.store_name(&valid_url, &generated_name)?;
+        self.names_repo.store_name(input, &generated_name)?;
         Ok(generated_name)
     }
 }
