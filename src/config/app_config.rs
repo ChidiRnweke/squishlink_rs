@@ -9,6 +9,39 @@ pub struct DBConfig {
     postgres_port: String,
 }
 
+pub struct AppConfig {
+    pub base_url: String,
+    pub db_config: DBConfig,
+}
+
+impl Default for AppConfig {
+    fn default() -> Self {
+        dotenvy::from_path("config/.env")
+            .inspect_err(|_| println!("No .env file was found. Proceeding with the test values."))
+            .map(|_| AppConfig::from_env())
+            .unwrap_or(AppConfig::new())
+    }
+}
+
+impl AppConfig {
+    fn from_env() -> Self {
+        let base_url_key_name = "BASE_URL";
+        let base_url = read_key(base_url_key_name);
+        let db_config = DBConfig::from_env();
+        AppConfig {
+            base_url,
+            db_config,
+        }
+    }
+
+    fn new() -> Self {
+        AppConfig {
+            base_url: "http://localhost:8000".to_string(),
+            db_config: DBConfig::new(),
+        }
+    }
+}
+
 impl DBConfig {
     fn from_env() -> Self {
         let user_key_name = "POSTGRES_USER";
