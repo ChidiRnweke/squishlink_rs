@@ -3,7 +3,7 @@ use rand::{seq::SliceRandom, Rng};
 use std::fs;
 
 #[derive(Debug)]
-pub struct GeneratedName(String);
+pub struct GeneratedName(pub String);
 
 impl fmt::Display for GeneratedName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
