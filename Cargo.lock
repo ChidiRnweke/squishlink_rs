@@ -670,6 +670,7 @@ dependencies = [
  "diesel",
  "dotenvy",
  "rand",
+ "serde",
  "tokio",
  "url",
 ]
