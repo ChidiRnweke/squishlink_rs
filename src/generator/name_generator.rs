@@ -66,3 +66,30 @@ fn read_adjectives() -> Vec<String> {
         .map(|s| s.to_string())
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_make_title_case() {
+        let adjective = String::from("big");
+        let result = make_title_case(&adjective);
+        assert_eq!(result, "Big");
+    }
+
+    #[test]
+    fn test_construct_name_generator() {
+        let generator = NameGenerator::new();
+        assert!(!generator.adjectives.is_empty());
+        assert!(!generator.nouns.is_empty());
+    }
+
+    #[test]
+    fn test_generate_name() {
+        let mut rng = rand::thread_rng();
+        let generator = NameGenerator::new();
+        let name = generator.make_random_name(&mut rng);
+        assert!(!name.0.is_empty());
+    }
+}
