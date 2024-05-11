@@ -1,4 +1,5 @@
 use core::fmt;
+use serde::Serialize;
 
 use super::{
     database::NamesRepository,
@@ -6,6 +7,7 @@ use super::{
 };
 use url::Url;
 
+#[derive(Serialize)]
 pub struct OutputLink {
     link: String,
 }
@@ -25,18 +27,19 @@ pub trait Shortener {
     ) -> Result<OutputLink, String>;
 }
 
-pub struct ShortenService<B>
+pub struct ShortenService<'a, 'b, B>
 where
     B: NameGeneratorTrait,
 {
-    base_url: String,
-    generator: B,
+    base_url: &'a str,
+    generator: &'b B,
 }
-impl<B> ShortenService<B>
+
+impl<'a, 'b, B> ShortenService<'a, 'b, B>
 where
     B: NameGeneratorTrait,
 {
-    pub fn new(base_url: String, generator: B) -> Self {
+    pub fn new(base_url: &'a str, generator: &'b B) -> Self {
         Self {
             base_url,
             generator,
@@ -49,12 +52,12 @@ where
     }
 
     fn to_output_link(&self, generated_name: &GeneratedName) -> OutputLink {
-        let link = self.base_url.clone() + "/" + &generated_name.0;
+        let link = self.base_url.to_owned() + &generated_name.0;
         OutputLink { link }
     }
 }
 
-impl<B> Shortener for ShortenService<B>
+impl<'a, 'b, B> Shortener for ShortenService<'a, 'b, B>
 where
     B: NameGeneratorTrait,
 {
@@ -108,24 +111,25 @@ mod tests {
 
     #[test]
     fn test_validate_input() {
-        let shortener =
-            ShortenService::new("http://localhost:8080".to_string(), NameGenerator::new());
-        let result = shortener.validate_input("http://localhost:8080");
+        let generator = NameGenerator::new();
+        let shortener = ShortenService::new("http://localhost:8080/", &generator);
+        let result = shortener.validate_input("http://localhost:8080/");
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_validate_input_invalid() {
-        let shortener =
-            ShortenService::new("http://localhost:8080".to_string(), NameGenerator::new());
+        let generator = NameGenerator::new();
+
+        let shortener = ShortenService::new("http://localhost:8080/", &generator);
         let result = shortener.validate_input("google.com");
         assert!(result.is_err());
     }
 
     #[test]
     fn test_to_output_link() {
-        let shortener =
-            ShortenService::new("http://localhost:8080".to_string(), NameGenerator::new());
+        let generator = NameGenerator::new();
+        let shortener = ShortenService::new("http://localhost:8080/", &generator);
         let generated_name = GeneratedName("test".to_string());
         let result = shortener.to_output_link(&generated_name);
         assert_eq!(result.link, "http://localhost:8080/test");
@@ -136,10 +140,11 @@ mod tests {
         // This test is to ensure that the code does not hang when generating a link.
         // This is because there is an infinite loop in the code.
         let mut repo = MockNamesRepository {};
-        let shortener =
-            ShortenService::new("http://localhost:8080".to_string(), NameGenerator::new());
+        let generator = NameGenerator::new();
+
+        let shortener = ShortenService::new("http://localhost:8080/", &generator);
         let mut rng = rand::thread_rng();
-        let result = shortener.shorten_name("http://localhost:8080", &mut repo, &mut rng);
+        let result = shortener.shorten_name("http://localhost:8080/", &mut repo, &mut rng);
         assert!(result.is_ok());
     }
 }
