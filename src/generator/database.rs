@@ -1,4 +1,4 @@
-use crate::config::app_config::DBConfig;
+use crate::config::DBConfig;
 
 use super::name_generator::GeneratedName;
 use crate::models::*;
@@ -63,6 +63,6 @@ impl PostgresRepository {
 
 pub fn establish_connection(db_config: &DBConfig) -> PgConnection {
     let database_url = db_config.to_connection_string();
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+    PgConnection::establish("postgres://zo08vB4JXY:CNJDHeIPE5@localhost:5432/squishlink_rs")
+        .expect(&format!("Error connecting to {}", database_url))
 }
