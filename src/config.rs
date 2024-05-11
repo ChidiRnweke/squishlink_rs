@@ -1,5 +1,21 @@
 use std::env;
 
+use crate::generator::name_generator::NameGenerator;
+
+pub struct AppState {
+    pub app_config: AppConfig,
+    pub name_generator: NameGenerator,
+}
+
+impl AppState {
+    pub fn new(app_config: AppConfig, name_generator: NameGenerator) -> Self {
+        Self {
+            app_config,
+            name_generator,
+        }
+    }
+}
+
 #[cfg_attr(test, derive(PartialEq))]
 #[derive(Debug)]
 pub struct DBConfig {
