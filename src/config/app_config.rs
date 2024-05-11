@@ -1,5 +1,6 @@
 use std::env;
 
+#[cfg_attr(test, derive(PartialEq))]
 #[derive(Debug)]
 pub struct DBConfig {
     postgres_user: String,
@@ -103,5 +104,17 @@ impl Default for DBConfig {
             .inspect_err(|_| println!("No .env file was found. Proceeding with the test values."))
             .map(|_| DBConfig::from_env())
             .unwrap_or(DBConfig::new())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn loading_default_app_config_loads_default_db_config() {
+        let app_config = AppConfig::default();
+        let db_config = DBConfig::default();
+        assert_eq!(app_config.db_config, db_config);
     }
 }
