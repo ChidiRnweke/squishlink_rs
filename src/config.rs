@@ -1,6 +1,5 @@
-use std::env;
-
 use crate::generator::name_generator::NameGenerator;
+use std::env;
 
 pub struct AppState {
     pub app_config: AppConfig,
@@ -45,6 +44,10 @@ impl AppConfig {
         let base_url_key_name = "BASE_URL";
         let base_url = read_key(base_url_key_name);
         let db_config = DBConfig::from_env();
+        if !base_url.ends_with("/") {
+            panic!("The base URL must end with a slash '/' for the application to work correctly.")
+        };
+
         AppConfig {
             base_url,
             db_config,
@@ -53,7 +56,7 @@ impl AppConfig {
 
     fn new() -> Self {
         AppConfig {
-            base_url: "http://localhost:8000".to_string(),
+            base_url: "http://localhost:8000/".to_string(),
             db_config: DBConfig::new(),
         }
     }
