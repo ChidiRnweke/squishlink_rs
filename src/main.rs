@@ -1,12 +1,14 @@
+mod cleanup;
 pub mod config;
 pub mod errors;
 mod generator;
 mod routes;
 pub mod schema;
+use std::{future::IntoFuture, sync::Arc};
 
-use std::sync::Arc;
-
-use crate::{config::AppConfig, generator::name_generator::NameGenerator};
+use crate::{
+    cleanup::spawn_cleanup_task, config::AppConfig, generator::name_generator::NameGenerator,
+};
 use config::AppState;
 use routes::make_router;
 use simplelog::*;
@@ -39,7 +41,10 @@ async fn main() {
     let addr = format!("0.0.0.0:{}", config.app_port);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     let app_state = Arc::new(AppState::new(config, name_generator));
-    let app = make_router(app_state);
-    log::info!("App started");
-    axum::serve(listener, app).await.unwrap();
+    let router = make_router(Arc::clone(&app_state));
+    // cleanup is an async function that awaits another async function.
+    // If there was no input parameter we wouldn't have needed to do this.
+    let cleanup = async move { spawn_cleanup_task(Arc::clone(&app_state)).await };
+    let (res1, _) = tokio::join!(axum::serve(listener, router).into_future(), cleanup);
+    res1.unwrap();
 }

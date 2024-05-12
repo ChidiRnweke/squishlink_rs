@@ -8,7 +8,7 @@ use diesel::prelude::*;
 use url::Url;
 
 use crate::schema::{self, links};
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::links)]
@@ -77,6 +77,14 @@ impl PostgresRepository {
     pub fn from_config(db_config: &DBConfig) -> Result<Self, AppError> {
         let connection = establish_connection(db_config)?;
         Ok(Self::from_connection(connection))
+    }
+
+    pub fn cleanup_old_links(&mut self) -> Result<usize, diesel::result::Error> {
+        let week = Duration::from_secs_f64(604800.0);
+        let last_week = SystemTime::now() + week;
+        diesel::delete(links)
+            .filter(created_at.lt(last_week))
+            .execute(&mut self.0)
     }
 }
 
