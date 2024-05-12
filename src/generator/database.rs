@@ -1,11 +1,30 @@
 use crate::config::DBConfig;
 
 use super::name_generator::GeneratedName;
-use crate::models::*;
 use crate::schema::links::dsl::*;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use url::Url;
+
+use crate::schema::{self, links};
+use std::time::SystemTime;
+
+#[derive(Queryable, Selectable)]
+#[diesel(table_name = schema::links)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct Link {
+    pub id: i32,
+    pub original_link: String,
+    pub short_link: String,
+    pub created_at: SystemTime,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = links)]
+pub struct NewLink<'a> {
+    pub original_link: &'a str,
+    pub short_link: &'a str,
+}
 
 pub trait NamesRepository {
     fn store_name(&mut self, original: &Url, generated: &GeneratedName) -> Result<(), String>;

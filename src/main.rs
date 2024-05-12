@@ -1,6 +1,5 @@
 pub mod config;
 mod generator;
-pub mod models;
 mod routes;
 pub mod schema;
 use std::sync::Arc;
