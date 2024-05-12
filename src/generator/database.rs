@@ -63,6 +63,6 @@ impl PostgresRepository {
 
 pub fn establish_connection(db_config: &DBConfig) -> PgConnection {
     let database_url = db_config.to_connection_string();
-    PgConnection::establish("postgres://zo08vB4JXY:CNJDHeIPE5@localhost:5432/squishlink_rs")
-        .expect(&format!("Error connecting to {}", database_url))
+    let err_msg = format!("Error connecting to {}", database_url);
+    PgConnection::establish(&database_url).expect(&err_msg)
 }

@@ -11,7 +11,7 @@ use routes::make_router;
 
 #[tokio::main]
 async fn main() {
-    let name_generator = NameGenerator::new();
+    let name_generator = NameGenerator::default();
     let config = AppConfig::default();
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     let app_state = Arc::new(AppState::new(config, name_generator));

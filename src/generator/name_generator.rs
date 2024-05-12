@@ -20,8 +20,8 @@ pub struct NameGenerator {
     nouns: Vec<String>,
 }
 
-impl NameGenerator {
-    pub fn new() -> Self {
+impl Default for NameGenerator {
+    fn default() -> Self {
         let adjectives = read_adjectives();
         let nouns = read_animals();
         Self { adjectives, nouns }
@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn test_construct_name_generator() {
-        let generator = NameGenerator::new();
+        let generator = NameGenerator::default();
         assert!(!generator.adjectives.is_empty());
         assert!(!generator.nouns.is_empty());
     }
@@ -88,7 +88,7 @@ mod tests {
     #[test]
     fn test_generate_name() {
         let mut rng = rand::thread_rng();
-        let generator = NameGenerator::new();
+        let generator = NameGenerator::default();
         let name = generator.make_random_name(&mut rng);
         assert!(!name.0.is_empty());
     }

@@ -35,7 +35,7 @@ impl Default for AppConfig {
         dotenvy::from_path("config/.env")
             .inspect_err(|_| println!("No .env file was found. Proceeding with the test values."))
             .map(|_| AppConfig::from_env())
-            .unwrap_or(AppConfig::new())
+            .unwrap_or_else(|_| AppConfig::new())
     }
 }
 
@@ -44,7 +44,7 @@ impl AppConfig {
         let base_url_key_name = "BASE_URL";
         let base_url = read_key(base_url_key_name);
         let db_config = DBConfig::from_env();
-        if !base_url.ends_with("/") {
+        if !base_url.ends_with('/') {
             panic!("The base URL must end with a slash '/' for the application to work correctly.")
         };
 
@@ -111,7 +111,8 @@ fn key_error_message(key: &str) -> String {
 }
 
 fn read_key(key: &str) -> String {
-    env::var(key).expect(&key_error_message(key))
+    let error_msg = key_error_message(key);
+    env::var(key).expect(&error_msg)
 }
 
 impl Default for DBConfig {
@@ -122,7 +123,7 @@ impl Default for DBConfig {
         dotenvy::from_path("config/.env")
             .inspect_err(|_| println!("No .env file was found. Proceeding with the test values."))
             .map(|_| DBConfig::from_env())
-            .unwrap_or(DBConfig::new())
+            .unwrap_or_else(|_| DBConfig::new())
     }
 }
 

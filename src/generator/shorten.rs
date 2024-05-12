@@ -77,7 +77,7 @@ where
         let mut generated_name = self.generator.make_random_name(rng);
         let mut already_exists = names_repo.name_exists(&generated_name)?;
         loop {
-            if already_exists == false {
+            if !already_exists {
                 break;
             }
             generated_name = self.generator.make_random_name(rng);
@@ -93,9 +93,7 @@ where
         names_repo: &mut impl NamesRepository,
     ) -> Result<Option<String>, String> {
         let generated_name = GeneratedName(shortened_link.to_string());
-        names_repo
-            .retrieve_original_name(&generated_name)
-            .map(|original| original.map(|link| link))
+        names_repo.retrieve_original_name(&generated_name)
     }
 }
 
@@ -131,7 +129,7 @@ mod tests {
 
     #[test]
     fn test_validate_input() {
-        let generator = NameGenerator::new();
+        let generator = NameGenerator::default();
         let shortener = ShortenService::new("http://localhost:8080/", &generator);
         let result = shortener.validate_input("http://localhost:8080/");
         assert!(result.is_ok());
@@ -139,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_validate_input_invalid() {
-        let generator = NameGenerator::new();
+        let generator = NameGenerator::default();
 
         let shortener = ShortenService::new("http://localhost:8080/", &generator);
         let result = shortener.validate_input("google.com");
@@ -148,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_to_output_link() {
-        let generator = NameGenerator::new();
+        let generator = NameGenerator::default();
         let shortener = ShortenService::new("http://localhost:8080/", &generator);
         let generated_name = GeneratedName("test".to_string());
         let result = shortener.to_output_link(&generated_name);
@@ -160,7 +158,7 @@ mod tests {
         // This test is to ensure that the code does not hang when generating a link.
         // This is because there is an infinite loop in the code.
         let mut repo = MockNamesRepository {};
-        let generator = NameGenerator::new();
+        let generator = NameGenerator::default();
 
         let shortener = ShortenService::new("http://localhost:8080/", &generator);
         let mut rng = rand::thread_rng();
