@@ -11,6 +11,7 @@ use serde::Deserialize;
 
 use crate::{
     config::AppState,
+    errors::AppError,
     generator::{
         database::PostgresRepository,
         shorten::{OutputLink, ShortenService, Shortener},
@@ -33,7 +34,7 @@ struct InputLink {
 async fn shorten(
     State(state): State<Arc<AppState>>,
     Json(input): Json<InputLink>,
-) -> Result<Json<OutputLink>, String> {
+) -> Result<Json<OutputLink>, AppError> {
     let service = ShortenService::new(&state.app_config.base_url, &state.name_generator);
     let mut rng = thread_rng();
     let mut names_repo = PostgresRepository::from_config(&state.app_config.db_config);
@@ -44,10 +45,9 @@ async fn shorten(
 async fn retrieve_original_link(
     state: State<Arc<AppState>>,
     short_link: Path<String>,
-) -> Result<Redirect, String> {
+) -> Result<Redirect, AppError> {
     let service = ShortenService::new(&state.app_config.base_url, &state.name_generator);
     let mut names_repo = PostgresRepository::from_config(&state.app_config.db_config);
-    let original_option = service.get_original_name(&short_link, &mut names_repo)?;
-    let original = original_option.ok_or("No original link found")?;
+    let original = service.get_original_name(&short_link, &mut names_repo)?;
     Ok(Redirect::permanent(&original))
 }

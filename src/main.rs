@@ -1,7 +1,9 @@
 pub mod config;
+pub mod errors;
 mod generator;
 mod routes;
 pub mod schema;
+
 use std::sync::Arc;
 
 use crate::{config::AppConfig, generator::name_generator::NameGenerator};

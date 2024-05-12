@@ -1,6 +1,8 @@
 use core::fmt;
 use serde::Serialize;
 
+use crate::errors::AppError;
+
 use super::{
     database::NamesRepository,
     name_generator::{GeneratedName, NameGeneratorTrait},
@@ -24,13 +26,13 @@ pub trait Shortener {
         name: &str,
         names_repo: &mut impl NamesRepository,
         rng: &mut rand::rngs::ThreadRng,
-    ) -> Result<OutputLink, String>;
+    ) -> Result<OutputLink, AppError>;
 
     fn get_original_name(
         &self,
         shortened_link: &str,
         names_repo: &mut impl NamesRepository,
-    ) -> Result<Option<String>, String>;
+    ) -> Result<String, AppError>;
 }
 
 pub struct ShortenService<'a, 'b, B>
@@ -52,9 +54,13 @@ where
         }
     }
 
-    fn validate_input(&self, input_link: &str) -> Result<Url, String> {
+    fn validate_input(&self, input_link: &str) -> Result<Url, AppError> {
         let url = Url::parse(input_link);
-        url.map_err(|_| "Invalid URL".to_string())
+        url.map_err(|_| {
+            AppError::UserInputError(
+                "You supplied an invalid link. Are you sure its a valid URL?".to_string(),
+            )
+        })
     }
 
     fn to_output_link(&self, generated_name: &GeneratedName) -> OutputLink {
@@ -72,7 +78,7 @@ where
         input: &str,
         names_repo: &mut impl NamesRepository,
         rng: &mut rand::rngs::ThreadRng,
-    ) -> Result<OutputLink, String> {
+    ) -> Result<OutputLink, AppError> {
         let validated_input = self.validate_input(input)?;
         let mut generated_name = self.generator.make_random_name(rng);
         let mut already_exists = names_repo.name_exists(&generated_name)?;
@@ -91,7 +97,7 @@ where
         &self,
         shortened_link: &str,
         names_repo: &mut impl NamesRepository,
-    ) -> Result<Option<String>, String> {
+    ) -> Result<String, AppError> {
         let generated_name = GeneratedName(shortened_link.to_string());
         names_repo.retrieve_original_name(&generated_name)
     }
@@ -109,21 +115,18 @@ mod tests {
             &mut self,
             _original: &Url,
             _generated: &GeneratedName,
-        ) -> Result<(), String> {
+        ) -> Result<(), AppError> {
             Ok(())
         }
 
-        fn name_exists(&mut self, _name: &GeneratedName) -> Result<bool, String> {
+        fn name_exists(&mut self, _name: &GeneratedName) -> Result<bool, AppError> {
             let mut rng = rand::thread_rng();
             let exists = rng.gen_bool(0.5);
             Ok(exists)
         }
 
-        fn retrieve_original_name(
-            &mut self,
-            _name: &GeneratedName,
-        ) -> Result<Option<String>, String> {
-            Ok(Some("".to_string()))
+        fn retrieve_original_name(&mut self, _name: &GeneratedName) -> Result<String, AppError> {
+            Ok("".to_string())
         }
     }
 

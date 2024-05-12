@@ -1,6 +1,7 @@
 use crate::config::DBConfig;
 
 use super::name_generator::GeneratedName;
+use crate::errors::AppError;
 use crate::schema::links::dsl::*;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
@@ -27,36 +28,35 @@ pub struct NewLink<'a> {
 }
 
 pub trait NamesRepository {
-    fn store_name(&mut self, original: &Url, generated: &GeneratedName) -> Result<(), String>;
-    fn name_exists(&mut self, name: &GeneratedName) -> Result<bool, String>;
-    fn retrieve_original_name(&mut self, name: &GeneratedName) -> Result<Option<String>, String>;
+    fn store_name(&mut self, original: &Url, generated: &GeneratedName) -> Result<(), AppError>;
+    fn name_exists(&mut self, name: &GeneratedName) -> Result<bool, AppError>;
+    fn retrieve_original_name(&mut self, name: &GeneratedName) -> Result<String, AppError>;
 }
 
 pub struct PostgresRepository(PgConnection);
 
 impl NamesRepository for PostgresRepository {
-    fn name_exists(&mut self, name: &GeneratedName) -> Result<bool, String> {
+    fn name_exists(&mut self, name: &GeneratedName) -> Result<bool, AppError> {
         let result: Option<Link> = links
             .filter(short_link.eq(&name.0))
             .first::<Link>(&mut self.0)
             .optional()
-            .map_err(|e| e.to_string())?;
+            .map_err(AppError::DatabaseError)?;
         Ok(result.is_some())
     }
 
-    fn retrieve_original_name(&mut self, name: &GeneratedName) -> Result<Option<String>, String> {
+    fn retrieve_original_name(&mut self, name: &GeneratedName) -> Result<String, AppError> {
         let result: Option<Link> = links
             .filter(short_link.eq(&name.0))
             .first::<Link>(&mut self.0)
             .optional()
-            .map_err(|e| e.to_string())?;
-        match result {
-            Some(link) => Ok(Some(link.original_link)),
-            None => Ok(None),
-        }
+            .map_err(AppError::DatabaseError)?;
+        result
+            .ok_or(AppError::NotFoundError)
+            .map(|link| link.original_link)
     }
 
-    fn store_name(&mut self, original: &Url, generated: &GeneratedName) -> Result<(), String> {
+    fn store_name(&mut self, original: &Url, generated: &GeneratedName) -> Result<(), AppError> {
         let new_link = NewLink {
             original_link: original.as_str(),
             short_link: &generated.0,
@@ -64,7 +64,7 @@ impl NamesRepository for PostgresRepository {
         diesel::insert_into(links)
             .values(new_link)
             .execute(&mut self.0)
-            .map_err(|e| e.to_string())?;
+            .map_err(AppError::DatabaseError)?;
         Ok(())
     }
 }
