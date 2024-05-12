@@ -13,7 +13,8 @@ use routes::make_router;
 async fn main() {
     let name_generator = NameGenerator::default();
     let config = AppConfig::default();
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let addr = format!("0.0.0.0:{}", config.app_port);
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     let app_state = Arc::new(AppState::new(config, name_generator));
     let app = make_router(app_state);
     axum::serve(listener, app).await.unwrap();

@@ -27,6 +27,7 @@ pub struct DBConfig {
 
 pub struct AppConfig {
     pub base_url: String,
+    pub app_port: String,
     pub db_config: DBConfig,
 }
 
@@ -42,7 +43,9 @@ impl Default for AppConfig {
 impl AppConfig {
     fn from_env() -> Self {
         let base_url_key_name = "BASE_URL";
+        let app_port_key_name = "APP_PORT";
         let base_url = read_key(base_url_key_name);
+        let app_port = read_key(app_port_key_name);
         let db_config = DBConfig::from_env();
         if !base_url.ends_with('/') {
             panic!("The base URL must end with a slash '/' for the application to work correctly.")
@@ -50,6 +53,7 @@ impl AppConfig {
 
         AppConfig {
             base_url,
+            app_port,
             db_config,
         }
     }
@@ -57,6 +61,7 @@ impl AppConfig {
     fn new() -> Self {
         AppConfig {
             base_url: "http://localhost:8000/".to_string(),
+            app_port: "8000".to_string(),
             db_config: DBConfig::new(),
         }
     }
