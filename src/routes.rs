@@ -37,7 +37,7 @@ async fn shorten(
 ) -> Result<Json<OutputLink>, AppError> {
     let service = ShortenService::new(&state.app_config.base_url, &state.name_generator);
     let mut rng = thread_rng();
-    let mut names_repo = PostgresRepository::from_config(&state.app_config.db_config);
+    let mut names_repo = PostgresRepository::from_config(&state.app_config.db_config)?;
     let shortened = service.shorten_name(&input.link, &mut names_repo, &mut rng)?;
     Ok(Json(shortened))
 }
@@ -47,7 +47,7 @@ async fn retrieve_original_link(
     short_link: Path<String>,
 ) -> Result<Redirect, AppError> {
     let service = ShortenService::new(&state.app_config.base_url, &state.name_generator);
-    let mut names_repo = PostgresRepository::from_config(&state.app_config.db_config);
+    let mut names_repo = PostgresRepository::from_config(&state.app_config.db_config)?;
     let original = service.get_original_name(&short_link, &mut names_repo)?;
     Ok(Redirect::permanent(&original))
 }

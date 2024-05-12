@@ -7,6 +7,7 @@ pub enum AppError {
     DatabaseError(diesel::result::Error),
     UserInputError(String),
     NotFoundError,
+    InfraError(String),
 }
 
 const NOT_FOUND_ERR_MSG: & str =
@@ -21,6 +22,7 @@ impl IntoResponse for AppError {
             AppError::NotFoundError => (StatusCode::NOT_FOUND, NOT_FOUND_ERR_MSG),
             AppError::DatabaseError(_) => (StatusCode::INTERNAL_SERVER_ERROR, DB_ERR_MSG),
             AppError::UserInputError(_) => (StatusCode::BAD_REQUEST, INPUT_ERR_MSG),
+            AppError::InfraError(_) => (StatusCode::INTERNAL_SERVER_ERROR, DB_ERR_MSG),
         };
         res.into_response()
     }

@@ -74,14 +74,13 @@ impl PostgresRepository {
         Self(conn)
     }
 
-    pub fn from_config(db_config: &DBConfig) -> Self {
-        let connection = establish_connection(db_config);
-        Self::from_connection(connection)
+    pub fn from_config(db_config: &DBConfig) -> Result<Self, AppError> {
+        let connection = establish_connection(db_config)?;
+        Ok(Self::from_connection(connection))
     }
 }
 
-pub fn establish_connection(db_config: &DBConfig) -> PgConnection {
+fn establish_connection(db_config: &DBConfig) -> Result<PgConnection, AppError> {
     let database_url = db_config.to_connection_string();
-    let err_msg = format!("Error connecting to {}", database_url);
-    PgConnection::establish(&database_url).expect(&err_msg)
+    PgConnection::establish(&database_url).map_err(|e| AppError::InfraError(e.to_string()))
 }
