@@ -10,7 +10,7 @@ use url::Url;
 pub trait NamesRepository {
     fn store_name(&mut self, original: &Url, generated: &GeneratedName) -> Result<(), String>;
     fn name_exists(&mut self, name: &GeneratedName) -> Result<bool, String>;
-    fn retrieve_original_name(&mut self, name: &GeneratedName) -> Result<String, String>;
+    fn retrieve_original_name(&mut self, name: &GeneratedName) -> Result<Option<String>, String>;
 }
 
 pub struct PostgresRepository(PgConnection);
@@ -25,15 +25,15 @@ impl NamesRepository for PostgresRepository {
         Ok(result.is_some())
     }
 
-    fn retrieve_original_name(&mut self, name: &GeneratedName) -> Result<String, String> {
+    fn retrieve_original_name(&mut self, name: &GeneratedName) -> Result<Option<String>, String> {
         let result: Option<Link> = links
             .filter(short_link.eq(&name.0))
             .first::<Link>(&mut self.0)
             .optional()
             .map_err(|e| e.to_string())?;
         match result {
-            Some(link) => Ok(link.original_link),
-            None => Err("Link not found".to_string()),
+            Some(link) => Ok(Some(link.original_link)),
+            None => Ok(None),
         }
     }
 

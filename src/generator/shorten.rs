@@ -25,6 +25,12 @@ pub trait Shortener {
         names_repo: &mut impl NamesRepository,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Result<OutputLink, String>;
+
+    fn get_original_name(
+        &self,
+        shortened_link: &str,
+        names_repo: &mut impl NamesRepository,
+    ) -> Result<Option<String>, String>;
 }
 
 pub struct ShortenService<'a, 'b, B>
@@ -80,6 +86,17 @@ where
         names_repo.store_name(&validated_input, &generated_name)?;
         Ok(self.to_output_link(&generated_name))
     }
+
+    fn get_original_name(
+        &self,
+        shortened_link: &str,
+        names_repo: &mut impl NamesRepository,
+    ) -> Result<Option<String>, String> {
+        let generated_name = GeneratedName(shortened_link.to_string());
+        names_repo
+            .retrieve_original_name(&generated_name)
+            .map(|original| original.map(|link| link))
+    }
 }
 
 #[cfg(test)]
@@ -104,8 +121,11 @@ mod tests {
             Ok(exists)
         }
 
-        fn retrieve_original_name(&mut self, _name: &GeneratedName) -> Result<String, String> {
-            Ok("".to_string())
+        fn retrieve_original_name(
+            &mut self,
+            _name: &GeneratedName,
+        ) -> Result<Option<String>, String> {
+            Ok(Some("".to_string()))
         }
     }
 
