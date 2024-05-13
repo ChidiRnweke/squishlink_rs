@@ -24,7 +24,6 @@ jobs:
               git clone -b master https://github.com/ChidiRnweke/squishlink_rs
               
               cd squishlink_rs
-              mkdir -p ./config
               touch ./config/.env
               echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ./config/.env
               echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> ./config/.env
@@ -36,5 +35,4 @@ jobs:
               docker compose -f compose.yml  up -d --build
               # perform cleanup
               cd ~
-              rm -rf ~/squishlink_rs
           EOF
