@@ -32,7 +32,9 @@ jobs:
               echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> ./config/.env
               echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> ./config/.env   
               echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> ./config/.env
+              echo "APP_PORT=3000" >> ./config/.env
               docker compose -f compose.yml  up -d --build
               # perform cleanup
               cd ~
+              rm -rf ~/squishlink_rs
           EOF
