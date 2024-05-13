@@ -32,7 +32,7 @@ jobs:
               echo "BASE_URL=${{ secrets.BASE_URL }}" >> ./config/.env
               echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> ./config/.env
               echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> ./config/.env   
-              echo "DATABASE_URL="${{ secrets.DATABASE_URL }}" >> ./config/.env
+              echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> ./config/.env
 
               docker compose pull            
               docker compose -f compose.yml  up -d
