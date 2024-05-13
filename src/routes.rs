@@ -52,7 +52,7 @@ async fn retrieve_original_link(
     if let Ok(original) = original_maybe {
         Ok(Redirect::permanent(&original))
     } else {
-        let missing_uri = state.app_config.base_url.clone() + "/squish/missing-url";
+        let missing_uri = state.app_config.base_url.clone() + "squish/missing-url";
         Ok(Redirect::permanent(&missing_uri))
     }
 }
