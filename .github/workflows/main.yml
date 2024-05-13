@@ -23,7 +23,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << EOF
               git clone -b main https://github.com/ChidiRnweke/squishlink_rs
               
-              cd squish
+              cd squishlink_rs
               mkdir -p ./config
               touch ./config/..env
               echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ./config/.env
@@ -33,10 +33,10 @@ jobs:
               echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> ./config/.env
               echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> ./config/.env   
               echo "DATABASE_URL="${{ secrets.DATABASE_URL }}" >> ./config/.env
-              echo 
+              
               docker compose pull            
               docker compose -f compose.yml  up -d
               # perform cleanup
               cd ~
-              rm -rf ~/squish
+              rm -rf ~/squishlink_rs
           EOF
