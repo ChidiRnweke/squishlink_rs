@@ -96,7 +96,7 @@ fn establish_connection(db_config: &DBConfig) -> Result<PgConnection, AppError> 
 }
 
 pub fn run_migration(db_config: &DBConfig) {
-    let mut conn = establish_connection(&db_config)
+    let mut conn = establish_connection(db_config)
         .expect("An error occurred when trying to obtain a database connection to run migrations. Shutting down app.");
     conn.run_pending_migrations(MIGRATIONS).expect("foo");
     log::info!("Migrations ran successfully.");

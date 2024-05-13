@@ -22,10 +22,18 @@ pub struct NameGenerator {
 
 impl Default for NameGenerator {
     fn default() -> Self {
-        let adjectives = read_adjectives();
-        let nouns = read_animals();
+        let adjectives = read_data("data/animals.txt");
+        let nouns = read_data("data/adjectives.txt");
         Self { adjectives, nouns }
     }
+}
+
+fn read_data(path: &str) -> Vec<String> {
+    fs::read_to_string(path)
+        .unwrap_or_else(|_| panic!("Could not read {path}"))
+        .lines()
+        .map(|s| s.to_string())
+        .collect()
 }
 
 impl NameGeneratorTrait for NameGenerator {
@@ -35,10 +43,12 @@ impl NameGeneratorTrait for NameGenerator {
             .nouns
             .choose(rng)
             .expect("There are no nouns to generate from");
+
         let random_adjective = self
             .adjectives
             .choose(rng)
             .expect("There are no adjectives to generate from");
+
         let random_number = rng.gen_range(0..1000);
         let title_adjective = make_title_case(random_adjective);
         GeneratedName(title_adjective + random_noun + &random_number.to_string())
@@ -49,22 +59,6 @@ fn make_title_case(random_adjective: &String) -> String {
     let mut adjective = String::from(random_adjective);
     adjective = adjective.remove(0).to_uppercase().to_string() + &adjective;
     adjective
-}
-
-fn read_animals() -> Vec<String> {
-    fs::read_to_string("data/animals.txt")
-        .expect("Could not read animals.txt")
-        .lines()
-        .map(|s| s.to_string())
-        .collect()
-}
-
-fn read_adjectives() -> Vec<String> {
-    fs::read_to_string("data/adjectives.txt")
-        .expect("Could not read adjectives.txt")
-        .lines()
-        .map(|s| s.to_string())
-        .collect()
 }
 
 #[cfg(test)]

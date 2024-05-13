@@ -33,10 +33,16 @@ pub struct AppConfig {
 
 impl Default for AppConfig {
     fn default() -> Self {
-        dotenvy::from_path("config/.env")
-            .inspect_err(|_| println!("No .env file was found. Proceeding with the test values."))
-            .map(|_| AppConfig::from_env())
-            .unwrap_or_else(|_| AppConfig::new())
+        if env::var("APP_PROD").is_ok() {
+            AppConfig::from_env()
+        } else {
+            dotenvy::from_path("config/.env")
+                .inspect_err(|_| {
+                    log::info!("No .env file was found. Proceeding with the test values.")
+                })
+                .map(|_| AppConfig::from_env())
+                .unwrap_or_else(|_| AppConfig::new())
+        }
     }
 }
 
@@ -125,10 +131,16 @@ impl Default for DBConfig {
     /// If the file is not found, it will use the default values. This is intentionally done
     /// to make it easy to use the DBConfig in a dev environment.
     fn default() -> Self {
-        dotenvy::from_path("config/.env")
-            .inspect_err(|_| println!("No .env file was found. Proceeding with the test values."))
-            .map(|_| DBConfig::from_env())
-            .unwrap_or_else(|_| DBConfig::new())
+        if env::var("APP_PROD").is_ok() {
+            DBConfig::from_env()
+        } else {
+            dotenvy::from_path("config/.env")
+                .inspect_err(|_| {
+                    log::info!("No .env file was found. Proceeding with the test values.")
+                })
+                .map(|_| DBConfig::from_env())
+                .unwrap_or_else(|_| DBConfig::new())
+        }
     }
 }
 

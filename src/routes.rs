@@ -21,7 +21,7 @@ use crate::{
 pub fn make_router(app_state: Arc<AppState>) -> Router {
     let state = Arc::clone(&app_state);
     Router::new()
-        .route("/shorten", post(shorten))
+        .route("/s", post(shorten))
         .route("/s/:short_link", get(retrieve_original_link))
         .with_state(state)
 }
@@ -48,6 +48,12 @@ async fn retrieve_original_link(
 ) -> Result<Redirect, AppError> {
     let service = ShortenService::new(&state.app_config.base_url, &state.name_generator);
     let mut names_repo = PostgresRepository::from_config(&state.app_config.db_config)?;
-    let original = service.get_original_name(&short_link, &mut names_repo)?;
-    Ok(Redirect::permanent(&original))
+    let original_maybe = service.get_original_name(&short_link, &mut names_repo);
+    if let Ok(original) = original_maybe {
+        Ok(Redirect::permanent(&original))
+    } else {
+        let missing_uri = state.app_config.base_url.strip_suffix("/s").unwrap();
+        let missing_uri = missing_uri.to_owned() + "/squish/missing-url";
+        Ok(Redirect::permanent(&missing_uri))
+    }
 }
