@@ -10,9 +10,17 @@ use crate::{
     cleanup::spawn_cleanup_task, config::AppConfig, generator::name_generator::NameGenerator,
 };
 use config::AppState;
+use generator::database::run_migration;
 use routes::make_router;
 use simplelog::*;
 use std::fs::File;
+use std::panic;
+
+fn log_panic_hook() {
+    panic::set_hook(Box::new(|e| {
+        log::error!("{e}");
+    }));
+}
 
 fn setup_logger() {
     let file = File::options()
@@ -36,8 +44,10 @@ fn setup_logger() {
 #[tokio::main]
 async fn main() {
     setup_logger();
+    log_panic_hook();
     let name_generator = NameGenerator::default();
     let config = AppConfig::default();
+    run_migration(&config.db_config);
     let addr = format!("0.0.0.0:{}", config.app_port);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     let app_state = Arc::new(AppState::new(config, name_generator));

@@ -8,7 +8,9 @@ use diesel::prelude::*;
 use url::Url;
 
 use crate::schema::{self, links};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::time::{Duration, SystemTime};
+const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::links)]
@@ -91,4 +93,11 @@ impl PostgresRepository {
 fn establish_connection(db_config: &DBConfig) -> Result<PgConnection, AppError> {
     let database_url = db_config.to_connection_string();
     PgConnection::establish(&database_url).map_err(|e| AppError::InfraError(e.to_string()))
+}
+
+pub fn run_migration(db_config: &DBConfig) {
+    let mut conn = establish_connection(&db_config)
+        .expect("An error occurred when trying to obtain a database connection to run migrations. Shutting down app.");
+    conn.run_pending_migrations(MIGRATIONS).expect("foo");
+    log::info!("Migrations ran successfully.");
 }
