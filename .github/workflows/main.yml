@@ -1,0 +1,41 @@
+name: Build, Push and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << EOF
+              git clone -b main https://github.com/ChidiRnweke/squishlink_rs
+              
+              cd squishLinkrs
+              mkdir -p ./config
+              touch ./config/..env
+              echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ./config/.env
+              echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> ./config/.env
+              echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> ./config/.env
+              echo "ROOT_URL=${{ secrets.ROOT_URL }}" >> ./config/.env
+              echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> ./config/.env
+              echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> ./config/.env   
+              echo "DATABASE_URL="${{ secrets.DATABASE_URL }}" >> ./config/.env
+              echo 
+              docker compose pull            
+              docker compose -f compose.yml  up -d
+              # perform cleanup
+              cd ~
+              rm -rf ~/squishlinkrs
+          EOF

@@ -1,0 +1,18 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    env_file:
+      - config/.env
+    environment:
+      - APP_PROD=True
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres-data-squishlink-rs:
+
+networks:
+  default:
+    name: app_network
+    external: true
