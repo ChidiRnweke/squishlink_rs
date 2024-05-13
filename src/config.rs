@@ -34,6 +34,7 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         if env::var("APP_PROD").is_ok() {
+            log::info!("App starting in production mode.");
             AppConfig::from_env()
         } else {
             dotenvy::from_path("config/.env")
