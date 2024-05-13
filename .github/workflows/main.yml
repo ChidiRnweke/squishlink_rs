@@ -21,7 +21,7 @@ jobs:
       - name: Deploy to server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << EOF
-              git clone -b main https://github.com/ChidiRnweke/squishlink_rs
+              git clone -b master https://github.com/ChidiRnweke/squishlink_rs
               
               cd squishlink_rs
               mkdir -p ./config
@@ -33,7 +33,7 @@ jobs:
               echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> ./config/.env
               echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> ./config/.env   
               echo "DATABASE_URL="${{ secrets.DATABASE_URL }}" >> ./config/.env
-              
+
               docker compose pull            
               docker compose -f compose.yml  up -d
               # perform cleanup
