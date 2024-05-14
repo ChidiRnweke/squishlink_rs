@@ -23,7 +23,7 @@ impl fmt::Display for OutputLink {
 pub trait Shortener {
     fn shorten_name(
         &self,
-        name: &str,
+        name: &mut String,
         names_repo: &mut impl NamesRepository,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Result<OutputLink, AppError>;
@@ -54,20 +54,21 @@ where
         }
     }
 
-    fn validate_input(&self, input_link: &str) -> Result<Url, AppError> {
+    fn validate_input(&self, input_link: &mut String) -> Result<Url, AppError> {
         let error_msg =  "You supplied an invalid link. Are you sure its a valid URL? TIP: it should either not have an scheme or be HTTPS".to_string();
         let maybe_url = if input_link.starts_with("https://") {
-            Url::parse(input_link)
+            Url::parse(&input_link)
         } else {
-            let link_with_https = String::from("https://") + input_link;
-            Url::parse(&link_with_https)
+            input_link.insert_str(0, "https://");
+            Url::parse(&input_link)
         };
 
         maybe_url.map_err(|_| AppError::UserInputError(error_msg))
     }
 
-    fn to_output_link(&self, generated_name: &GeneratedName) -> OutputLink {
-        let link = self.base_url.to_owned() + &generated_name.0;
+    fn to_output_link(&self, generated_name: GeneratedName) -> OutputLink {
+        let mut link = generated_name.0;
+        link.insert_str(0, self.base_url);
         OutputLink { link }
     }
 }
@@ -78,7 +79,7 @@ where
 {
     fn shorten_name(
         &self,
-        input: &str,
+        input: &mut String,
         names_repo: &mut impl NamesRepository,
         rng: &mut rand::rngs::ThreadRng,
     ) -> Result<OutputLink, AppError> {
@@ -93,7 +94,7 @@ where
             already_exists = names_repo.name_exists(&generated_name)?;
         }
         names_repo.store_name(&validated_input, &generated_name)?;
-        Ok(self.to_output_link(&generated_name))
+        Ok(self.to_output_link(generated_name))
     }
 
     fn get_original_name(
@@ -137,8 +138,16 @@ mod tests {
     fn test_validate_input() {
         let generator = NameGenerator::default();
         let shortener = ShortenService::new("http://localhost:8080/", &generator);
-        let result = shortener.validate_input("http://localhost:8080/");
+        let result = shortener.validate_input(&mut "https://localhost:8080/".to_string());
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_http_is_invalid() {
+        let generator = NameGenerator::default();
+        let shortener = ShortenService::new("http://localhost:8080/", &generator);
+        let result = shortener.validate_input(&mut "http://localhost:8080/".to_string());
+        assert!(result.is_err());
     }
 
     #[test]
@@ -146,7 +155,7 @@ mod tests {
         let generator = NameGenerator::default();
 
         let shortener = ShortenService::new("http://localhost:8080/", &generator);
-        let result = shortener.validate_input("google.com");
+        let result = shortener.validate_input(&mut "google.com".to_string());
         assert!(result.is_err());
     }
 
@@ -155,7 +164,7 @@ mod tests {
         let generator = NameGenerator::default();
         let shortener = ShortenService::new("http://localhost:8080/", &generator);
         let generated_name = GeneratedName("test".to_string());
-        let result = shortener.to_output_link(&generated_name);
+        let result = shortener.to_output_link(generated_name);
         assert_eq!(result.link, "http://localhost:8080/test");
     }
 
@@ -168,7 +177,11 @@ mod tests {
 
         let shortener = ShortenService::new("http://localhost:8080/", &generator);
         let mut rng = rand::thread_rng();
-        let result = shortener.shorten_name("http://localhost:8080/", &mut repo, &mut rng);
+        let result = shortener.shorten_name(
+            &mut "https://localhost:8080/".to_string(),
+            &mut repo,
+            &mut rng,
+        );
         assert!(result.is_ok());
     }
 }

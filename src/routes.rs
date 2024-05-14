@@ -33,12 +33,12 @@ struct InputLink {
 
 async fn shorten(
     state: State<Arc<AppState>>,
-    input: Json<InputLink>,
+    mut input: Json<InputLink>,
 ) -> Result<Json<OutputLink>, AppError> {
     let service = ShortenService::new(&state.app_config.base_url, &state.name_generator);
     let mut rng = thread_rng();
     let mut names_repo = PostgresRepository::from_config(&state.app_config.db_config)?;
-    let shortened = service.shorten_name(&input.link, &mut names_repo, &mut rng)?;
+    let shortened = service.shorten_name(&mut input.link, &mut names_repo, &mut rng)?;
     Ok(Json(shortened))
 }
 
