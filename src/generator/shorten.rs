@@ -57,10 +57,10 @@ where
     fn validate_input(&self, input_link: &mut String) -> Result<Url, AppError> {
         let error_msg =  "You supplied an invalid link. Are you sure its a valid URL? TIP: it should either not have an scheme or be HTTPS".to_string();
         let maybe_url = if input_link.starts_with("https://") {
-            Url::parse(&input_link)
+            Url::parse(input_link)
         } else {
             input_link.insert_str(0, "https://");
-            Url::parse(&input_link)
+            Url::parse(input_link)
         };
 
         maybe_url.map_err(|_| AppError::UserInputError(error_msg))

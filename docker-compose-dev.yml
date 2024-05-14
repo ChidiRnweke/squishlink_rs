@@ -2,11 +2,14 @@ version: "3.8"
 services:
   postgres:
     image: postgres:16.2-alpine3.19
-    env_file:
-      - config/.env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=squishlink_rs
     volumes:
-      - postgres-data-squishlink-rs:/var/lib/postgresql/data
+      - postgres-data-squishlink-rs-test:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
 volumes:
-  postgres-data-squishlink-rs:
+  postgres-data-squishlink-rs-test:
