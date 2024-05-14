@@ -55,12 +55,15 @@ where
     }
 
     fn validate_input(&self, input_link: &str) -> Result<Url, AppError> {
-        let url = Url::parse(input_link);
-        url.map_err(|_| {
-            AppError::UserInputError(
-                "You supplied an invalid link. Are you sure its a valid URL?".to_string(),
-            )
-        })
+        let error_msg =  "You supplied an invalid link. Are you sure its a valid URL? TIP: it should either not have an scheme or be HTTPS".to_string();
+        let maybe_url = if input_link.starts_with("https://") {
+            Url::parse(input_link)
+        } else {
+            let link_with_https = String::from("https://") + input_link;
+            Url::parse(&link_with_https)
+        };
+
+        maybe_url.map_err(|_| AppError::UserInputError(error_msg))
     }
 
     fn to_output_link(&self, generated_name: &GeneratedName) -> OutputLink {
